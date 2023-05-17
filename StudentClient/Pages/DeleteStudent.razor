@@ -1,0 +1,78 @@
+@page "/delete/{BcitId}"
+@inject HttpClient httpClient
+@inject NavigationManager navigationManager
+
+<h1>Delete Student</h1>
+
+<p>Confirm Delete?</p>
+
+@if (students != null && studentFound) // Delete form
+{
+    <EditForm Model="@student" OnValidSubmit="@HandleDelete">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <button type="submit" value="Delete" class="btn btn-danger">Delete</button>
+        <a href="/students">
+            <button value="Back" class="btn btn-secondary">Cancel</button>
+        </a>
+
+        @code {
+        private Student student = new Student();
+
+        protected async void HandleDelete()
+        {
+            string endpoint = $"{baseUrl}api/students/{student.BcitId}";
+            await httpClient.DeleteAsync(endpoint);
+            await load();
+            StateHasChanged(); // causes the page to get automatically refreshed
+
+            navigationManager.NavigateTo("/students");
+        }
+    }
+</EditForm>
+}
+
+@code {
+    [Parameter]
+    public string BcitId { get; set; }
+    Student[] students;
+    string baseUrl = "http://localhost:3000/";
+
+    Student s;
+    bool studentFound = false;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await load();
+        await ShowStudentToDelete(BcitId);
+    }
+
+    protected async Task load()
+    {
+        students = await httpClient.GetFromJsonAsync<Student[]>($"{baseUrl}api/students");
+    }
+
+    protected async Task ShowStudentToDelete(string id)
+    {
+        HttpResponseMessage response = await httpClient.GetAsync($"{baseUrl}api/students/{id}");
+        if (response.IsSuccessStatusCode)
+        {
+            s = await httpClient.GetFromJsonAsync<Student>($"{baseUrl}api/students/{id}");
+            student.BcitId = s.BcitId;
+            student.FirstName = s.FirstName;
+            student.LastName = s.LastName;
+            student.MobileNumber = s.MobileNumber;
+            student.EmailAddress = s.EmailAddress;
+            student.CityOfResidence = s.CityOfResidence;
+            student.Specialization = s.Specialization;
+            studentFound = true;
+        }
+        else
+        {
+            navigationManager.NavigateTo("/students");
+        }
+    }
+
+}

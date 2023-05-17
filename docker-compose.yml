@@ -1,0 +1,46 @@
+version: '3'
+
+volumes:
+  datafiles:
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2017-CU8-ubuntu
+    container_name: student_db
+    volumes:
+      - datafiles:/var/opt/mssql/data
+    ports:
+      - "1433:1433"
+    restart: always
+    
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: SqlExpress!
+
+  webapi:
+    build:
+      context: .
+      dockerfile: StudentApi/Dockerfile
+    container_name: student_api
+    depends_on:
+      - db
+    ports:
+      - "3000:80"
+      - "3001:443"
+    restart: always
+    environment:
+      - DBHOST=db
+      - DBPORT=1433
+      - DBPASSWORD=SqlExpress!
+
+  blazor:
+    build:
+      context: .
+      dockerfile: StudentClient/Dockerfile
+    container_name: student_blazor
+    depends_on:
+      - webapi
+    ports:
+      - "8888:80"
+      - "8889:443"
+    restart: always

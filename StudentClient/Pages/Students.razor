@@ -1,0 +1,60 @@
+@page "/students"
+@inject HttpClient httpClient
+
+<h1>Students</h1>
+
+<p>List of BCIT Students</p>
+
+@if (students == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <a class="btn btn-success btn-med" href="add">Add</a>
+    <table class='table table-hover'>
+        <thead>
+            <tr>
+                <th>BCIT ID</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Mobile Number</th>
+                <th>Email Address</th>
+                <th>City Of Residence</th>
+                <th>Specialization</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in students)
+            {
+                <tr>
+                    <td>@item.BcitId</td>
+                    <td>@item.FirstName</td>
+                    <td>@item.LastName</td>
+                    <td>@item.MobileNumber</td>
+                    <td>@item.EmailAddress</td>
+                    <td>@item.CityOfResidence</td>
+                    <td>@item.Specialization</td>
+                    <td><a class="btn btn-success btn-sm" href="edit/@item.BcitId.ToString()">edit</a></td>
+                    <td><a class="btn btn-danger btn-sm" href="delete/@item.BcitId.ToString()">del</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    Student[] students;
+    string baseUrl = "http://localhost:3000/";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await load();
+    }
+
+    protected async Task load()
+    {
+        students = await httpClient.GetFromJsonAsync<Student[]>($"{baseUrl}api/students");
+    }
+
+}
